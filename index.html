@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Aleatorio</title>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+
+    <div>
+        <label for="username">Nome: </label>
+        <input type="text" id="username">
+        <button id="connect">Conectar</button>
+    </div>
+    <div id="chat" style="display: none;">
+        <div id="messages"></div>
+        <form action="" id="form">
+            <input autocomplete="off" id="input"/>
+            <button>Enviar</button>
+        </form>
+        <button id="disconnect">Desconectar</button>
+    </div>
+       
+      
+    
+</body>
+
+<script>
+    const socket = io();
+    const chatDiv = document.getElementById('chat');
+    const connectButton = document.getElementById('connect');
+    const disconnectButton = document.getElementById('disconnect');
+    const usernameInput = document.getElementById('username');
+    const messageDiv = document.getElementById('messages');
+ 
+    connectButton.addEventListener('click', ()=>{
+        const username = usernameInput.value;
+        if(username){
+            socket.emit('set username', username);
+            chatDiv.style.display = "block";
+        } else {
+            alert('Por favor, insira um nome.')
+        }
+    });
+ 
+ 
+    document.getElementById('form').addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const input = document.getElementById('input');
+        socket.emit('chat message', input.value);
+        input.value = '';
+    });
+ 
+    disconnectButton.addEventListener('click', ()=>{
+        socket.emit('manual disconnect');
+        chatDiv.style.display ='none',
+        messageDiv.innerHTML = '';
+    });
+ 
+ 
+    socket.on('waiting', (msg)=>{
+        messageDiv.innerHTML = `<p>${msg}<p/>`;
+    });
+ 
+    socket.on('chat start', (msg)=>{
+        messageDiv.innerHTML = `<p>${msg}<p/>`
+    });
+ 
+    socket.on('chat message', (msg)=>{
+        const messageElement = document.createElement('p');
+        messageElement.textContent = msg;
+        messageDiv.appendChild(messageElement);
+    });
+ 
+    socket.on('chat end', (msg)=>{
+        const messageElement = document.createElement('p');
+        messageElement.textContent = msg;
+        messageDiv.appendChild(messageElement);
+    });
+    </script>
+</html>
